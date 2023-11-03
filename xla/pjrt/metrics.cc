@@ -16,6 +16,7 @@ limitations under the License.
 #include "xla/pjrt/metrics.h"
 
 #include <cstdint>
+#include <string>
 
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
@@ -73,25 +74,22 @@ void RecordPjrtCompilerCompileModuleStatus(bool is_compiling) {
   pjrt_compiler_is_compiling_module->GetCell()->Set(is_compiling);
 }
 
-void RecordFreeGpuSystemMemory() {
+void RecordFreeGpuSystemMemory(int gpu_id) {
   tensorflow::se::Platform* gpu_manager = tensorflow::se::GPUMachineManager();
-  int visible_device_count = gpu_manager->VisibleDeviceCount();
-  if (gpu_manager == nullptr || visible_device_count <= 0) return;
+  if (gpu_manager == nullptr || gpu_manager->VisibleDeviceCount() <= 0) return;
 
-  for (int i = 0; i < visible_device_count; ++i) {
-    tensorflow::se::StreamExecutor* se =
-        gpu_manager->ExecutorForDevice(i).value();
-    int64_t free_memory = 0, total_memory = 0;
-    if (se->DeviceMemoryUsage(&free_memory, &total_memory)) {
-      free_gpu_system_memory->GetCell(absl::StrCat(i))->Set(free_memory);
-    } else {
-      LOG(ERROR) << "Failed to query available memory for GPU " << i;
-    }
+  tensorflow::se::StreamExecutor* se =
+      gpu_manager->ExecutorForDevice(gpu_id).value();
+  int64_t free_memory = 0, total_memory = 0;
+  if (se->DeviceMemoryUsage(&free_memory, &total_memory)) {
+    free_gpu_system_memory->GetCell(std::to_string(gpu_id))->Set(free_memory);
+  } else {
+    LOG(ERROR) << "Failed to query available memory for GPU " << gpu_id;
   }
 }
 
 int64_t GetFreeGpuSystemMemory(int gpu_id) {
-  return free_gpu_system_memory->GetCell(absl::StrCat(gpu_id))->value();
+  return free_gpu_system_memory->GetCell(std::to_string(gpu_id))->value();
 }
 
 }  // namespace metrics

@@ -57,7 +57,6 @@ _XLA_SHARED_OBJECT_SENSITIVE_DEPS = if_oss([_tsl_clean_dep("@com_google_protobuf
     clean_dep("//xla/stream_executor:device_id_utils"),
     clean_dep("//xla/stream_executor:stream_executor_impl"),
     clean_dep("//xla/stream_executor/gpu:gpu_cudamallocasync_allocator"),
-    clean_dep("//xla/stream_executor/gpu:gpu_init_impl"),
     clean_dep("@tsl//tsl/profiler/utils:time_utils_impl"),
     clean_dep("@tsl//tsl/profiler/backends/cpu:annotation_stack_impl"),
     clean_dep("@tsl//tsl/profiler/backends/cpu:traceme_recorder_impl"),

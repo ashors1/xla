@@ -60,22 +60,26 @@ limitations under the License.
 #include "tsl/platform/threadpool.h"
 #include "tsl/profiler/lib/connected_traceme.h"
 
-#if defined(GOOGLE_CUDA) || defined(TENSORFLOW_USE_ROCM)
+#ifdef GOOGLE_CUDA
+#include "third_party/gpus/cuda/include/cuda.h"
+#include "third_party/gpus/cuda/include/cuda_runtime_api.h"
 #include "xla/pjrt/compile_options.pb.h"
 #include "xla/pjrt/gpu/nccl_id_store.h"
 #include "xla/pjrt/metrics.h"
 #include "xla/pjrt/stream_executor_executable.pb.h"
 #include "xla/service/gpu/gpu_compiler.h"
-#include "xla/xla.pb.h"
-#endif  // GOOGLE_CUDA || TENSORFLOW_USE_ROCM
-
-#if GOOGLE_CUDA
-#include "third_party/gpus/cuda/include/cuda.h"
-#include "third_party/gpus/cuda/include/cuda_runtime_api.h"
 #include "xla/stream_executor/gpu/gpu_cudamallocasync_allocator.h"
-#elif TENSORFLOW_USE_ROCM
+#include "xla/xla.pb.h"
+#endif  // GOOGLE_CUDA
+
+#ifdef TENSORFLOW_USE_ROCM
 #include "rocm/rocm_config.h"
-#endif
+#include "xla/pjrt/compile_options.pb.h"  // NOLINT(build/include)
+#include "xla/pjrt/gpu/nccl_id_store.h"  // NOLINT(build/include)
+#include "xla/pjrt/stream_executor_executable.pb.h"  // NOLINT(build/include)
+#include "xla/service/gpu/gpu_compiler.h"  // NOLINT(build/include)
+#include "xla/xla.pb.h"  // NOLINT(build/include)
+#endif  // TENSORFLOW_USE_ROCM
 
 #include "xla/client/client_library.h"
 #include "xla/service/gpu/gpu_executable_run_options.h"
@@ -535,9 +539,10 @@ StreamExecutorGpuClient::Compile(const XlaComputation& computation,
                                  CompileOptions options) {
   auto executable = PjRtStreamExecutorClient::Compile(computation, options);
 
-#if defined(GOOGLE_CUDA) || defined(TENSORFLOW_USE_ROCM)
+#ifdef GOOGLE_CUDA
   metrics::RecordFreeGpuSystemMemory();
-#endif  // GOOGLE_CUDA || TENSORFLOW_USE_ROCM
+#endif  // GOOGLE_CUDA
+
   return executable;
 }
 
